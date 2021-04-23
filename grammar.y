@@ -7,10 +7,10 @@ import Tokens
 %tokentype { Token }
 %error { parseError }
 %token
-	from        { TokenFrom }
-	tableName   { TokenTableName $$ }
-	get         { TokenGet }
-       int         { TokenInt $$ }
+      from        { TokenFrom }
+      tableName   { TokenTableName $$ }
+      get         { TokenGet }
+      int         { TokenInt $$ }
       '['          { TokenLColSelect }
       ']'          { TokenRColSelect }
       ','          { TokenComma }

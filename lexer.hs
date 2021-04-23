@@ -5355,60 +5355,60 @@ alex_accept = listArray (0 :: Int, 71)
   ]
 
 alex_actions = array (0 :: Int, 51)
-  [ (50,alex_action_2)
-  , (49,alex_action_3)
-  , (48,alex_action_4)
-  , (47,alex_action_5)
-  , (46,alex_action_6)
-  , (45,alex_action_7)
-  , (44,alex_action_8)
-  , (43,alex_action_9)
-  , (42,alex_action_10)
-  , (41,alex_action_11)
-  , (40,alex_action_12)
-  , (39,alex_action_13)
-  , (38,alex_action_14)
-  , (37,alex_action_15)
-  , (36,alex_action_16)
-  , (35,alex_action_17)
-  , (34,alex_action_18)
-  , (33,alex_action_19)
-  , (32,alex_action_20)
-  , (31,alex_action_21)
-  , (30,alex_action_22)
-  , (29,alex_action_23)
-  , (28,alex_action_24)
-  , (27,alex_action_25)
-  , (26,alex_action_26)
-  , (25,alex_action_27)
-  , (24,alex_action_28)
-  , (23,alex_action_29)
-  , (22,alex_action_30)
-  , (21,alex_action_31)
-  , (20,alex_action_32)
-  , (19,alex_action_33)
-  , (18,alex_action_33)
-  , (17,alex_action_33)
-  , (16,alex_action_33)
-  , (15,alex_action_33)
-  , (14,alex_action_33)
-  , (13,alex_action_33)
-  , (12,alex_action_33)
-  , (11,alex_action_33)
-  , (10,alex_action_33)
-  , (9,alex_action_33)
-  , (8,alex_action_33)
-  , (7,alex_action_33)
-  , (6,alex_action_33)
-  , (5,alex_action_33)
-  , (4,alex_action_33)
-  , (3,alex_action_33)
-  , (2,alex_action_33)
-  , (1,alex_action_33)
-  , (0,alex_action_33)
+  [ (50,alex_action_3)
+  , (49,alex_action_4)
+  , (48,alex_action_5)
+  , (47,alex_action_6)
+  , (46,alex_action_7)
+  , (45,alex_action_8)
+  , (44,alex_action_9)
+  , (43,alex_action_10)
+  , (42,alex_action_11)
+  , (41,alex_action_12)
+  , (40,alex_action_13)
+  , (39,alex_action_14)
+  , (38,alex_action_15)
+  , (37,alex_action_16)
+  , (36,alex_action_17)
+  , (35,alex_action_18)
+  , (34,alex_action_19)
+  , (33,alex_action_20)
+  , (32,alex_action_21)
+  , (31,alex_action_22)
+  , (30,alex_action_23)
+  , (29,alex_action_24)
+  , (28,alex_action_25)
+  , (27,alex_action_26)
+  , (26,alex_action_27)
+  , (25,alex_action_28)
+  , (24,alex_action_29)
+  , (23,alex_action_30)
+  , (22,alex_action_31)
+  , (21,alex_action_32)
+  , (20,alex_action_33)
+  , (19,alex_action_34)
+  , (18,alex_action_34)
+  , (17,alex_action_34)
+  , (16,alex_action_34)
+  , (15,alex_action_34)
+  , (14,alex_action_34)
+  , (13,alex_action_34)
+  , (12,alex_action_34)
+  , (11,alex_action_34)
+  , (10,alex_action_34)
+  , (9,alex_action_34)
+  , (8,alex_action_34)
+  , (7,alex_action_34)
+  , (6,alex_action_34)
+  , (5,alex_action_34)
+  , (4,alex_action_34)
+  , (3,alex_action_34)
+  , (2,alex_action_34)
+  , (1,alex_action_34)
+  , (0,alex_action_34)
   ]
 
-{-# LINE 54 "lexer.x" #-}
+{-# LINE 55 "lexer.x" #-}
  
 -- Each action has type :: String -> Token
 -- The token type:
@@ -5447,38 +5447,38 @@ data Token =
   TokenQuotation   
   deriving (Eq,Show)
 
-alex_action_2 =  \s -> TokenFrom 
-alex_action_3 =  \s -> TokenTableName s
-alex_action_4 =  \s -> TokenGet 
-alex_action_5 =  \s -> TokenAs 
-alex_action_6 =  \s -> TokenLet 
-alex_action_7 =  \s -> TokenIf 
-alex_action_8 =  \s -> TokenThen 
-alex_action_9 =  \s -> TokenElse 
-alex_action_10 =  \s -> TokenInt (read s) 
-alex_action_11 =  \s -> TokenIsEmpty 
-alex_action_12 =  \s -> TokenNotEmpty 
-alex_action_13 =  \s -> TokenQuestion 
-alex_action_14 =  \s -> TokenQuotation 
-alex_action_15 =  \s -> TokenColon 
-alex_action_16 =  \s -> TokenAnd 
-alex_action_17 =  \s -> TokenComma 
-alex_action_18 =  \s -> TokenBodyArrow 
-alex_action_19 =  \s -> TokenOutputArrow 
-alex_action_20 =  \s -> TokenLColSelect 
-alex_action_21 =  \s -> TokenRColSelect 
-alex_action_22 =  \s -> TokenCompare 
-alex_action_23 =  \s -> TokenEqual 
-alex_action_24 =  \s -> TokenNotEqual 
-alex_action_25 =  \s -> TokenPlus 
-alex_action_26 =  \s -> TokenMinus 
-alex_action_27 =  \s -> TokenStar 
-alex_action_28 =  \s -> TokenDiv 
-alex_action_29 =  \s -> TokenLOutput 
-alex_action_30 =  \s -> TokenROutput 
-alex_action_31 =  \s -> TokenLParen 
-alex_action_32 =  \s -> TokenRParen 
-alex_action_33 =  \s -> TokenVar s 
+alex_action_3 =  \s -> TokenFrom 
+alex_action_4 =  \s -> TokenTableName s
+alex_action_5 =  \s -> TokenGet 
+alex_action_6 =  \s -> TokenAs 
+alex_action_7 =  \s -> TokenLet 
+alex_action_8 =  \s -> TokenIf 
+alex_action_9 =  \s -> TokenThen 
+alex_action_10 =  \s -> TokenElse 
+alex_action_11 =  \s -> TokenInt (read s) 
+alex_action_12 =  \s -> TokenIsEmpty 
+alex_action_13 =  \s -> TokenNotEmpty 
+alex_action_14 =  \s -> TokenQuestion 
+alex_action_15 =  \s -> TokenQuotation 
+alex_action_16 =  \s -> TokenColon 
+alex_action_17 =  \s -> TokenAnd 
+alex_action_18 =  \s -> TokenComma 
+alex_action_19 =  \s -> TokenBodyArrow 
+alex_action_20 =  \s -> TokenOutputArrow 
+alex_action_21 =  \s -> TokenLColSelect 
+alex_action_22 =  \s -> TokenRColSelect 
+alex_action_23 =  \s -> TokenCompare 
+alex_action_24 =  \s -> TokenEqual 
+alex_action_25 =  \s -> TokenNotEqual 
+alex_action_26 =  \s -> TokenPlus 
+alex_action_27 =  \s -> TokenMinus 
+alex_action_28 =  \s -> TokenStar 
+alex_action_29 =  \s -> TokenDiv 
+alex_action_30 =  \s -> TokenLOutput 
+alex_action_31 =  \s -> TokenROutput 
+alex_action_32 =  \s -> TokenLParen 
+alex_action_33 =  \s -> TokenRParen 
+alex_action_34 =  \s -> TokenVar s 
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 -- -----------------------------------------------------------------------------
 -- ALEX TEMPLATE

@@ -12,6 +12,7 @@ $alphaUpper = [A-Z]
 tokens :-
   $white+       		         ; 
   "--".*        		         ; 
+  $white                     ;
   from                         { \s -> TokenFrom }
   $alphaUpper+                 { \s -> TokenTableName s}
   get					    { \s -> TokenGet }
