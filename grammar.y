@@ -39,8 +39,8 @@ import Tokens
 %%
 STMT : Selects eqArrow MainBody                        { TProgram $1 $3 }
 
-MainBody : IfOrIfElseSTMT                              { $1 }
-         | outputArrow '{' Outputs '}'                 { $3 }
+MainBody : IfOrIfElseSTMT                              { TMainNotLet $1 }
+         | outputArrow '{' Outputs '}'                 { TMainNotLet $3 }
          | LetSTMTs eqArrow MainBody                   { TMain $1 $3 }
          | LetSTMTs outputArrow '{' Outputs '}'        { TMain $1 $4 }
 
@@ -84,6 +84,7 @@ data Program = TProgram Program Program
              | TOutput Program
              | TOutputs Program Program
              | TNoOutput
+             | TMainNotLet Program
              | TLets Program Program
              | TLet Program Program
              | TLet1Line Program Program Program Program 

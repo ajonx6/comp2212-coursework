@@ -24,18 +24,18 @@ data HappyAbsSyn t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14
 	| HappyAbsSyn14 t14
 
 happyExpList :: Happy_Data_Array.Array Prelude.Int Prelude.Int
-happyExpList = Happy_Data_Array.listArray (0,118) ([16384,0,0,256,0,0,2048,0,0,0,1,128,0,0,0,0,4096,0,0,16,0,0,8448,64,0,0,0,2048,1024,0,0,1,0,0,0,4096,0,0,1024,0,4096,0,0,0,128,0,0,0,32,0,0,0,0,8192,0,0,256,0,0,32768,0,4096,6,0,16384,0,0,128,0,4096,1026,0,0,32,16384,0,0,0,0,0,0,0,16384,4104,0,32768,0,0,49152,0,0,4,0,4096,0,16384,64,0,0,1024,0,1,0,4096,0,0,16,0,0,1,0,0,0,0,0,0,16384,24,0,256,0,0,4,0,4096,0,0,64,0,0,8,0,0,8,0,0,64,0,0,0,0,0,0,1024,0,0,0,0,0,0,0,512,0,0,8,0,8192,0,0,0,0,8,0,0,0,0,0,64,0,0,0,0,0,0,4096,1026,0,8192,0,16384,0,0,0,8,0,0,0,4096,0,0,0,0,0
+happyExpList = Happy_Data_Array.listArray (0,116) ([16384,0,0,512,0,0,8192,0,0,0,8,2048,0,0,0,0,0,4,0,2048,0,0,0,16417,0,0,0,0,32,16,0,2048,0,0,0,0,512,0,0,256,0,2048,0,0,0,256,0,0,0,128,0,0,0,0,0,2,0,8192,0,0,0,32,0,776,0,0,64,0,0,1,0,2112,16,0,0,2,1024,0,0,0,0,0,0,0,8192,2052,0,32768,0,0,32768,1,0,16,0,32768,0,0,1028,0,0,0,1,64,0,0,8,0,4096,0,0,512,0,0,0,0,0,0,0,33792,1,0,32,0,0,1,0,2048,0,0,64,0,0,16,0,0,32,0,0,1024,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,4,0,8192,0,0,256,0,0,0,0,1,0,0,0,0,0,32,0,0,0,0,0,0,16384,4104,0,0,1,0,4,0,0,256,0,0,0,0,8,0,0,0,0,0
 	])
 
 {-# NOINLINE happyExpListPerState #-}
 happyExpListPerState st =
     token_strs_expected
-  where token_strs = ["error","%dummy","%start_parseCalc","STMT","MainBody","Outputs","LetSTMTs","LetSTMT","IfOrIfElseSTMT","IfSTMT","BoolSTMT","Selects","Select","Columns","from","tableName","get","int","'['","']'","','","as","var","eqArrow","if","then","else","isEmpty","notEmpty","let","'('","')'","'?'","':'","'&'","'='","'=='","'!='","outputArrow","'{'","'}'","%eof"]
-        bit_start = st Prelude.* 42
-        bit_end = (st Prelude.+ 1) Prelude.* 42
+  where token_strs = ["error","%dummy","%start_parseCalc","STMT","MainBody","Outputs","LetSTMTs","LetSTMT","IfOrIfElseSTMT","IfSTMT","BoolSTMT","Selects","Select","Columns","from","tableName","get","int","'['","']'","','","as","var","eqArrow","if","then","else","isEmpty","notEmpty","let","'('","')'","'?'","':'","'&'","'='","'=='","'!='","outputArrow","'\"'","'{'","'}'","%eof"]
+        bit_start = st Prelude.* 43
+        bit_end = (st Prelude.+ 1) Prelude.* 43
         read_bit = readArrayBit happyExpList
         bits = Prelude.map read_bit [bit_start..bit_end Prelude.- 1]
-        bits_indexed = Prelude.zip bits [0..41]
+        bits_indexed = Prelude.zip bits [0..42]
         token_strs_expected = Prelude.concatMap f bits_indexed
         f (Prelude.False, _) = []
         f (Prelude.True, nr) = [token_strs Prelude.!! nr]
@@ -60,7 +60,7 @@ action_3 _ = happyReduce_20
 action_4 (16) = happyShift action_6
 action_4 _ = happyFail (happyExpListPerState 4)
 
-action_5 (42) = happyAccept
+action_5 (43) = happyAccept
 action_5 _ = happyFail (happyExpListPerState 5)
 
 action_6 (17) = happyShift action_18
@@ -101,7 +101,7 @@ action_14 _ = happyFail (happyExpListPerState 14)
 action_15 (23) = happyShift action_22
 action_15 _ = happyFail (happyExpListPerState 15)
 
-action_16 (40) = happyShift action_21
+action_16 (41) = happyShift action_21
 action_16 _ = happyFail (happyExpListPerState 16)
 
 action_17 _ = happyReduce_21
@@ -146,7 +146,7 @@ action_26 (9) = happyGoto action_12
 action_26 (10) = happyGoto action_13
 action_26 _ = happyFail (happyExpListPerState 26)
 
-action_27 (40) = happyShift action_28
+action_27 (41) = happyShift action_28
 action_27 _ = happyFail (happyExpListPerState 27)
 
 action_28 (23) = happyShift action_38
@@ -184,7 +184,7 @@ action_36 (23) = happyShift action_43
 action_36 (31) = happyShift action_44
 action_36 _ = happyFail (happyExpListPerState 36)
 
-action_37 (41) = happyShift action_42
+action_37 (42) = happyShift action_42
 action_37 _ = happyFail (happyExpListPerState 37)
 
 action_38 (21) = happyShift action_41
@@ -228,7 +228,7 @@ action_49 _ = happyFail (happyExpListPerState 49)
 action_50 (32) = happyShift action_53
 action_50 _ = happyFail (happyExpListPerState 50)
 
-action_51 (41) = happyShift action_52
+action_51 (42) = happyShift action_52
 action_51 _ = happyFail (happyExpListPerState 51)
 
 action_52 _ = happyReduce_5
@@ -304,7 +304,7 @@ happyReduction_1 _ _ _  = notHappyAtAll
 happyReduce_2 = happySpecReduce_1  5 happyReduction_2
 happyReduction_2 (HappyAbsSyn9  happy_var_1)
 	 =  HappyAbsSyn5
-		 (happy_var_1
+		 (TMainNotLet happy_var_1
 	)
 happyReduction_2 _  = notHappyAtAll 
 
@@ -315,7 +315,7 @@ happyReduction_3 (_ `HappyStk`
 	_ `HappyStk`
 	happyRest)
 	 = HappyAbsSyn5
-		 (happy_var_3
+		 (TMainNotLet happy_var_3
 	) `HappyStk` happyRest
 
 happyReduce_4 = happySpecReduce_3  5 happyReduction_4
@@ -518,7 +518,7 @@ happyReduction_24 ((HappyAbsSyn14  happy_var_5) `HappyStk`
 	) `HappyStk` happyRest
 
 happyNewToken action sts stk [] =
-	action 42 42 notHappyAtAll (HappyState action) sts stk []
+	action 43 43 notHappyAtAll (HappyState action) sts stk []
 
 happyNewToken action sts stk (tk:tks) =
 	let cont i = action i i tk (HappyState action) sts stk tks in
@@ -548,12 +548,13 @@ happyNewToken action sts stk (tk:tks) =
 	TokenCompare -> cont 37;
 	TokenNotEqual -> cont 38;
 	TokenOutputArrow -> cont 39;
-	TokenLOutput -> cont 40;
-	TokenROutput -> cont 41;
+	TokenQuotation -> cont 40;
+	TokenLOutput -> cont 41;
+	TokenROutput -> cont 42;
 	_ -> happyError' ((tk:tks), [])
 	}
 
-happyError_ explist 42 tk tks = happyError' (tks, explist)
+happyError_ explist 43 tk tks = happyError' (tks, explist)
 happyError_ explist _ tk tks = happyError' ((tk:tks), explist)
 
 newtype HappyIdentity a = HappyIdentity a
@@ -595,6 +596,7 @@ data Program = TProgram Program Program
              | TOutput Program
              | TOutputs Program Program
              | TNoOutput
+             | TMainNotLet Program
              | TLets Program Program
              | TLet Program Program
              | TLet1Line Program Program Program Program 

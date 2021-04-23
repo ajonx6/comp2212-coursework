@@ -1,4 +1,4 @@
-from A get 0 as a0 & from B get 1 as b1 & from C get 2 as c2 => -> {}
+from A get 0 as a0 & from B get 1 as b1 & from C get 2 as c2 => -> {a0, b1}
 
 -- TProgram (TSelects (TSelect (TTableName "A") (TColumn (TInt 0) (TVar "a0"))) (TSelect (TTableName "B") (TColumn (TInt 1) (TVar "b1")))) 
 -- TNoOutput
