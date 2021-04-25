@@ -1,2 +1,0 @@
-12/04 - added to grammar NoOutput
-      - worked out the error was caused by spaces

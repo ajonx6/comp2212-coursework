@@ -1,3 +1,6 @@
-from A get 0 as a0, 1 as a1, 2 as a2 => if (a0 == a1) then ( -> {a2, a0}) else ( -> {})
-
-TProgram (TSelect (TTableName "A") (TColumns (TInt 0) (TVar "a0") (TColumns (TInt 1) (TVar "a1") (TColumn (TInt 2) (TVar "a2"))))) (TIfElse (TIf (TEqual (TVar "a0") (TVar "a1")) (TOutputs (TVar "a2") (TOutput (TVar "a0")))) TNoOutput)
+from A get 0 as a0, 1 as a1, 2 as a2 =>
+if (a0 == a1) then (
+    -> {a2, a0}
+) else (
+    -> {}
+)

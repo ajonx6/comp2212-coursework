@@ -1,4 +1,5 @@
-from A get 0 as a0 & from B get 1 as b1 & from C get 2 as c2 => -> {a0, b1}
+from A get 0 as a0, 1 as a1 & from B get 0 as b0, 1 as b1 => 
+let r0 = (a0 != b0) ? a1 : b0 =>
+-> {r0}
 
--- TProgram (TSelects (TSelect (TTableName "A") (TColumn (TInt 0) (TVar "a0"))) (TSelect (TTableName "B") (TColumn (TInt 1) (TVar "b1")))) 
--- TNoOutput
+-- -> {}) else (-> {a0, b1})
