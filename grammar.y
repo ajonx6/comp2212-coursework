@@ -35,6 +35,7 @@ import Tokens
       '{'          { TokenLOutput }
       '}'          { TokenROutput }
       '*'          { TokenStar }
+      str          { TokenString $$ }
 
 %%
 STMT : Selects eqArrow MainBody                        { TProgram $1 $3 }
@@ -44,23 +45,26 @@ MainBody : IfOrIfElseSTMT                              { TMainNotLet $1 }
          | LetSTMTs eqArrow MainBody                   { TMain $1 $3 }
          | LetSTMTs outputArrow '{' Outputs '}'        { TMain $1 $4 }
 
-Outputs : var                                   { TOutput (TVar $1) }
-        | var ',' Outputs                       { TOutputs (TVar $1) $3 }
+Outputs : Assigment                                    { TOutput $1 }
+        | Assigment ',' Outputs                        { TOutputs $1 $3 }
         |                                              { TNoOutput}
 
 LetSTMTs : LetSTMT                                     { $1 }
          | LetSTMT '&' LetSTMTs                        { TLets $1 $3 }
 
-LetSTMT : let var '=' var                                     { TLet (TVar $2) (TVar $4) }
-        | let var '=' '(' BoolSTMT ')' '?' var ':' var        { TLet1Line (TVar $2) $5 (TVar $8) (TVar $10) }
+LetSTMT : let var '=' Assigment                                           { TLet (TVar $2) $4 }
+        | let var '=' '(' BoolSTMT ')' '?' Assigment ':' Assigment        { TLet1Line (TVar $2) $5 $8 $10 }
+
+Assigment : var                                               { TAssignment (TVar $1) }
+          | str                                               { TAssignment (TString $1) }
 
 IfOrIfElseSTMT : IfSTMT else '(' MainBody ')'          { TIfElse $1 $4 } 
                | IfSTMT                                { $1 }
 
 IfSTMT : if '(' BoolSTMT ')' then '(' MainBody ')'     { TIf $3 $7 }
 
-BoolSTMT : var '==' var                         { TEqual (TVar $1) (TVar $3) }
-         | var '!=' var                         { TNotEqual (TVar $1) (TVar $3) }
+BoolSTMT : var '==' Assigment                          { TEqual (TVar $1) $3 }
+         | var '!=' Assigment                          { TNotEqual (TVar $1) $3 }
          | isEmpty '(' var ')'                         { TEmpty (TVar $3) }
          | notEmpty '(' var ')'                        { TNotEmpty (TVar $3) }
 
@@ -86,6 +90,7 @@ parseError _ = error "Parse Error"
 data Program = TProgram Program Program
              | TMain Program Program
              | TVar String
+             | TString String
              | TInt Int
              | TOutput Program
              | TOutputs Program Program
@@ -105,6 +110,7 @@ data Program = TProgram Program Program
              | TColumn Program Program 
              | TColumns Program Program Program 
              | TMultiCols Program Program
+             | TAssignment Program
              | TStar
              | TTableName String
              deriving (Show, Eq)

@@ -7,7 +7,7 @@ $digit = 0-9
 -- digits 
 $alphaLower = [a-z]
 $alphaUpper = [A-Z]  
-$everything = [A-Za-z0-9]  
+$everything = [A-Za-z0-9]
 -- alphabetic characters
 
 tokens :-
@@ -33,17 +33,18 @@ tokens :-
   \->					    { \s -> TokenOutputArrow }
   \[					    { \s -> TokenLColSelect }
   \]					    { \s -> TokenRColSelect }
-  \==				         { \s -> TokenCompare }
+  \==				           { \s -> TokenCompare }
   \=                           { \s -> TokenEqual }
   \!=                          { \s -> TokenNotEqual }
-  \+          		         { \s -> TokenPlus }
-  \-          		         { \s -> TokenMinus }
-  \*          		         { \s -> TokenStar }
-  \/              		    { \s -> TokenDiv }
+  \+          		           { \s -> TokenPlus }
+  \-          		           { \s -> TokenMinus }
+  \*          		           { \s -> TokenStar }
+  \/              		       { \s -> TokenDiv }
   \{          		           { \s -> TokenLOutput }
   \}          		           { \s -> TokenROutput }
   \(          		           { \s -> TokenLParen }
   \)          		           { \s -> TokenRParen }
+  \" $everything+ \"                { \s -> TokenString s }
   $alphaLower+ $digit*         { \s -> TokenVar s }
   
 
@@ -81,6 +82,7 @@ data Token =
   TokenIsEmpty            |
   TokenNotEmpty           |
   TokenQuestion           |
+  TokenString String      |
   TokenColon              
   deriving (Eq,Show)
 }

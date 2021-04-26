@@ -12,6 +12,11 @@ type LetVar = (String, [String])
 type Environment = ([Column], [LetVar], [[String]])
 
 run :: Program -> Environment -> IO Environment
+
+for i in 0 to A-1
+    for j in 0 to b-1
+        for k in 0 to C-1
+
 run (TProgram selects mainBody) (cs, ls, os) = do vars <- run selects (cs, ls, os)
                                                   run mainBody vars
 run (TSelects select selects) (cs, ls, os) = do (css, _, _) <- run select (cs, ls, os)
@@ -25,33 +30,42 @@ run (TMain lets lower) (cs, ls, os) = do (_, lss, _) <- run lets (cs, ls, os)
 run (TLets letStmt moreLets) (cs, ls, os) = do (_, lss, _) <- run letStmt (cs, ls, os)
                                                (_, mlss, _) <- run moreLets (cs, ls, os)
                                                return (cs, lss ++ mlss, os)
-run (TLet (TVar var1) (TVar var2)) (cs, ls, os) = do let v1 = doesVarExist var1 cs ls
-                                                     let v2 = doesVarExist var2 cs ls
-                                                     if not v1 then error ("Variable " ++ var1 ++ " does not exist")
-                                                     else if not v2 then error ("Variable " ++ var2 ++ " does not exist")
-                                                     else return (cs, ls ++ [(var1, fromJust (lookup' var2 cs ls))], os)                   
-run (TLet1Line (TVar var) bStmt (TVar vart) (TVar varf)) (cs, ls, os) = do let vt = doesVarExist vart cs ls
-                                                                           let vf = doesVarExist varf cs ls
-                                                                           if not vt then error ("Variable " ++ vart ++ " does not exist")
-                                                                           else if not vf then error ("Variable " ++ varf ++ " does not exist")
-                                                                           else if evaluateBoolTest bStmt cs ls then return (cs, ls ++ [(var, fromJust (lookup' vart cs ls))], os)
-                                                                           else return (cs, ls ++ [(var, fromJust (lookup' varf cs ls))], os)
+run (TLet (TVar var1) (TAssignment ass)) (cs, ls, os) = do let asss = getAssignment ass cs ls --let vars = getAssignment var1 cs ls
+                                                           if isNothing asss then do error ("Variable " ++ getName ass ++ " does not exist") 
+                                                           else return (cs, ls ++ [(var1, fromJust asss)], os)                   
+run (TLet1Line (TVar var) bStmt (TAssignment asst) (TAssignment assf)) (cs, ls, os) = do let assst = getAssignment asst cs ls
+                                                                                         let asssf = getAssignment assf cs ls
+                                                                                         if isNothing assst then do error ("Variable " ++ getName asst ++ " does not exist") 
+                                                                                         else if isNothing asssf then do error ("Variable " ++ getName assf ++ " does not exist") 
+                                                                                         else if evaluateBoolTest bStmt cs ls then return (cs, ls ++ [(var, fromJust assst)], os)
+                                                                                         else return (cs, ls ++ [(var, fromJust asssf)], os)
 run (TMainNotLet lower) (cs, ls, os) = do run lower (cs, ls, os)
 run (TIfElse (TIf bStmt mbt) mbf) (cs, ls, os) = do let res = evaluateBoolTest bStmt cs ls
                                                     if res then run mbt (cs, ls, os)
                                                     else run mbf (cs, ls, os) 
-run (TOutputs (TVar varName) moreOutputs) (cs, ls, os) = do let var = lookup' varName cs ls
-                                                            if isNothing var then do error ("Variable " ++ varName ++ " does not exist") 
-                                                            else do let newOS = writeToOutput os (fromJust var)
-                                                                    run moreOutputs (cs, ls, newOS)
-run (TOutput (TVar varName)) (cs, ls, os) = do let var = lookup' varName cs ls
-                                               if isNothing var then do error ("Variable " ++ varName ++ " does not exist") 
-                                               else do let newOS = finishRowOutput (writeToOutput os (fromJust var))
-                                                       return (cs, ls, newOS)
+run (TOutputs (TAssignment ass) moreOutputs) (cs, ls, os) = do let asss = getAssignment ass cs ls
+                                                               if isNothing asss then do error ("Variable " ++ getName ass ++ " does not exist") 
+                                                               else do let newOS = writeToOutput os (fromJust asss)
+                                                                       run moreOutputs (cs, ls, newOS)
+run (TOutput (TAssignment ass)) (cs, ls, os) = do let asss = getAssignment ass cs ls
+                                                  if isNothing asss then do error ("Variable " ++ getName ass ++ " does not exist") 
+                                                  else do let newOS = finishRowOutput (writeToOutput os (fromJust asss))
+                                                          return (cs, ls, newOS)                                 
 run TNoOutput (_, _, os) = return ([], [], os)    
 
-doesVarExist :: String -> [Column] -> [LetVar] -> Bool
-doesVarExist s cs ls = s `elem` (map first cs) || s `elem` (map fst ls)
+getName :: Program -> String
+getName (TString str) = removeQuotations str
+getName (TVar var) = var
+
+getAssignment :: Program -> [Column] -> [LetVar] -> Maybe [String]
+getAssignment (TString str) _ _ = Just [removeQuotations str]
+getAssignment (TVar var) cs ls = lookup' var cs ls 
+
+removeQuotations :: String -> String
+removeQuotations [] = [] 
+removeQuotations (c:cs) = if c == '\"' then removeQuotations cs else c : removeQuotations cs
+-- doesVarExist :: String -> [Column] -> [LetVar] -> Bool
+-- doesVarExist s cs ls = s `elem` (map first cs) || s `elem` (map fst ls)
 
 first :: (a, b, c) -> a
 first (x, _, _) = x
