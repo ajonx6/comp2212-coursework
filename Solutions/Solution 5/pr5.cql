@@ -1,0 +1,1 @@
+from A get 0 as a => -> {a, "0", a}
