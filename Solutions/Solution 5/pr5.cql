@@ -1,0 +1,1 @@
+from A get 0 as a => let o = "0" -> {a, o, a}
