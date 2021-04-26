@@ -6,7 +6,8 @@ module Tokens where
 $digit = 0-9     
 -- digits 
 $alphaLower = [a-z]
-$alphaUpper = [A-Z]    
+$alphaUpper = [A-Z]  
+$everything = [A-Za-z0-9]  
 -- alphabetic characters
 
 tokens :-
@@ -25,7 +26,6 @@ tokens :-
   isEmpty				    { \s -> TokenIsEmpty }
   notEmpty                     { \s -> TokenNotEmpty }
   \?					    { \s -> TokenQuestion }
-  \^					    { \s -> TokenQuotation }
   \:					    { \s -> TokenColon }
   \&					    { \s -> TokenAnd }
   \,					    { \s -> TokenComma }
@@ -40,53 +40,47 @@ tokens :-
   \-          		         { \s -> TokenMinus }
   \*          		         { \s -> TokenStar }
   \/              		    { \s -> TokenDiv }
-  \{          		         { \s -> TokenLOutput }
-  \}          		         { \s -> TokenROutput }
-  \(          		         { \s -> TokenLParen }
-  \)          		         { \s -> TokenRParen }
+  \{          		           { \s -> TokenLOutput }
+  \}          		           { \s -> TokenROutput }
+  \(          		           { \s -> TokenLParen }
+  \)          		           { \s -> TokenRParen }
   $alphaLower+ $digit*         { \s -> TokenVar s }
-
-
-
-
-
-
+  
 
 { 
 -- Each action has type :: String -> Token
 -- The token type:
 data Token = 
-  TokenFrom        |
+  TokenFrom               |
   TokenTableName String   |
-  TokenGet         |
-  TokenAs          |
-  TokenLet         | 
-  TokenIf          |
-  TokenThen        |
-  TokenElse        |
-  TokenInt Int     |
-  TokenAnd         |
-  TokenComma       |
-  TokenBodyArrow   |
-  TokenOutputArrow |
-  TokenLColSelect  |
-  TokenRColSelect  |
-  TokenCompare     |
-  TokenVar String  |
-  TokenEqual       |
-  TokenNotEqual    |
-  TokenPlus        |
-  TokenMinus       |
-  TokenStar        |
-  TokenDiv         |
-  TokenLOutput     |
-  TokenROutput     |
-  TokenLParen      |
-  TokenRParen      |
-  TokenIsEmpty     |
-  TokenNotEmpty    |
-  TokenQuestion    |
-  TokenColon       |
-  TokenQuotation   
+  TokenGet                |
+  TokenAs                 |
+  TokenLet                | 
+  TokenIf                 |
+  TokenThen               |
+  TokenElse               |
+  TokenInt Int            |
+  TokenAnd                |
+  TokenComma              |
+  TokenBodyArrow          |
+  TokenOutputArrow        |
+  TokenLColSelect         |
+  TokenRColSelect         |
+  TokenCompare            |
+  TokenVar String         |
+  TokenEqual              |
+  TokenNotEqual           |
+  TokenPlus               |
+  TokenMinus              |
+  TokenStar               |
+  TokenDiv                |
+  TokenLOutput            |
+  TokenROutput            |
+  TokenLParen             |
+  TokenRParen             |
+  TokenIsEmpty            |
+  TokenNotEmpty           |
+  TokenQuestion           |
+  TokenColon              
   deriving (Eq,Show)
 }

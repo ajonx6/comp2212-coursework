@@ -32,9 +32,9 @@ import Tokens
       '=='         { TokenCompare }
       '!='         { TokenNotEqual }
       outputArrow  { TokenOutputArrow }
-      '"'          { TokenQuotation }
       '{'          { TokenLOutput }
       '}'          { TokenROutput }
+      '*'          { TokenStar }
 
 %%
 STMT : Selects eqArrow MainBody                        { TProgram $1 $3 }
@@ -44,23 +44,23 @@ MainBody : IfOrIfElseSTMT                              { TMainNotLet $1 }
          | LetSTMTs eqArrow MainBody                   { TMain $1 $3 }
          | LetSTMTs outputArrow '{' Outputs '}'        { TMain $1 $4 }
 
-Outputs : var                                          { TOutput (TVar $1) }
-        | var ',' Outputs                              { TOutputs (TVar $1) $3 }
+Outputs : var                                   { TOutput (TVar $1) }
+        | var ',' Outputs                       { TOutputs (TVar $1) $3 }
         |                                              { TNoOutput}
 
 LetSTMTs : LetSTMT                                     { $1 }
          | LetSTMT '&' LetSTMTs                        { TLets $1 $3 }
 
-LetSTMT : let var '=' var                              { TLet (TVar $2) (TVar $4) }
-        | let var '=' '(' BoolSTMT ')' '?' var ':' var { TLet1Line (TVar $2) $5 (TVar $8) (TVar $10) }
+LetSTMT : let var '=' var                                     { TLet (TVar $2) (TVar $4) }
+        | let var '=' '(' BoolSTMT ')' '?' var ':' var        { TLet1Line (TVar $2) $5 (TVar $8) (TVar $10) }
 
 IfOrIfElseSTMT : IfSTMT else '(' MainBody ')'          { TIfElse $1 $4 } 
                | IfSTMT                                { $1 }
 
 IfSTMT : if '(' BoolSTMT ')' then '(' MainBody ')'     { TIf $3 $7 }
 
-BoolSTMT : var '==' var                                { TEqual (TVar $1) (TVar $3) }
-         | var '!=' var                                { TNotEqual (TVar $1) (TVar $3) }
+BoolSTMT : var '==' var                         { TEqual (TVar $1) (TVar $3) }
+         | var '!=' var                         { TNotEqual (TVar $1) (TVar $3) }
          | isEmpty '(' var ')'                         { TEmpty (TVar $3) }
          | notEmpty '(' var ')'                        { TNotEmpty (TVar $3) }
 
@@ -70,8 +70,14 @@ Selects : Select                                       { $1 }
 
 Select : from tableName get Columns                    { TSelect (TTableName $2) $4 }
 
-Columns : int as var                            { TColumn (TInt $1) (TVar $3) }
-        | int as var ',' Columns                { TColumns (TInt $1) (TVar $3) $5 }
+Columns : ColumnNumbers as var                            { TColumn $1 (TVar $3) }
+        | '[' ColumnNumbers ']' as var                            { TColumn $2 (TVar $5) }
+        | ColumnNumbers as var ',' Columns                { TColumns $1 (TVar $3) $5 }
+        | '[' ColumnNumbers ']' as var ',' Columns                { TColumns $2 (TVar $5) $7 }
+
+ColumnNumbers : '*'                                       { TStar }
+              | int ',' ColumnNumbers                     { TMultiCols (TInt $1) $3 }
+              | int                                       { TInt $1 }
 
 {
 parseError :: [Token] -> a
@@ -98,6 +104,8 @@ data Program = TProgram Program Program
              | TSelect Program Program 
              | TColumn Program Program 
              | TColumns Program Program Program 
+             | TMultiCols Program Program
+             | TStar
              | TTableName String
              deriving (Show, Eq)
 }

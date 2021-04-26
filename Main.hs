@@ -1,13 +1,14 @@
 import Lexer
-import Grammar
+import Grammar ( parseCalc, Program(..) )
 import System.Environment ( getArgs )
 import Control.Exception ( catch, ErrorCall, evaluate )
 import System.IO ( stderr, hPutStr )
 import Data.Maybe ( isJust, isNothing, fromJust )
+import Data.List
 
 data CSV = CSV String [[String]] deriving Show
-type Column = (String, [String], Int)
-type LetVar = (String, String)
+type Column = (String, [[String]], Int)
+type LetVar = (String, [String])
 type Environment = ([Column], [LetVar], [[String]])
 
 run :: Program -> Environment -> IO Environment
@@ -68,37 +69,46 @@ evaluateBoolTest (TNotEqual (TVar var1) (TVar var2)) cs ls = let varr1 = lookup'
                                                                  else fromJust varr1 /= fromJust varr2      
 evaluateBoolTest (TEmpty (TVar var)) cs ls = let varr = lookup' var cs ls
                                              in  if isNothing varr then do error ("Variable " ++ var ++ " does not exist in if statement")           
-                                                 else fromJust varr == "" 
+                                                 else all (== "") (fromJust varr) 
 evaluateBoolTest (TNotEmpty (TVar var)) cs ls = let varr = lookup' var cs ls
                                                 in  if isNothing varr then do error ("Variable " ++ var ++ " does not exist in if statement")           
-                                                    else fromJust varr /= ""
+                                                    else any (/= "") (fromJust varr) 
 
-writeToOutput :: [[String]] -> String -> [[String]]
-writeToOutput os var = let currentRow = os !! (length os - 1)
-                           restOfList = take (length os - 1) os
-                       in  restOfList ++ [currentRow ++ [var]]
+writeToOutput :: [[String]] -> [String] -> [[String]]
+writeToOutput os vars = let currentRow = os !! (length os - 1)
+                            restOfList = take (length os - 1) os
+                        in  restOfList ++ [currentRow ++ vars]
 
 finishRowOutput :: [[String]] -> [[String]]
 finishRowOutput os = os ++ [[]]
 
-lookup' :: String -> [Column] -> [LetVar] -> Maybe String
+lookup' :: String -> [Column] -> [LetVar] -> Maybe [String]
 lookup' str cs vs = let coll = lookupColName str cs
                         lett = lookupLetName str vs
                     in  if isJust coll then coll
                         else if isJust lett then lett
                         else Nothing
 
-lookupColName :: String -> [Column] -> Maybe String
+lookupColName :: String -> [Column] -> Maybe [String]
 lookupColName _ [] = Nothing
-lookupColName varName ((n, d, i):cs) = if varName == n then Just (d !! i) else lookupColName varName cs
+lookupColName varName ((n, d, i):cs) = if varName == n then Just (getDataAtIndex d i) else lookupColName varName cs
 
-lookupLetName :: String -> [LetVar] -> Maybe String
+lookupLetName :: String -> [LetVar] -> Maybe [String]
 lookupLetName _ [] = Nothing
 lookupLetName varName ((n, v):ns) = if varName == n then Just v else lookupLetName varName ns
 
+getDataAtIndex :: [[String]] -> Int -> [String]
+getDataAtIndex [] _ = []
+getDataAtIndex (d:ds) i = d !! i : getDataAtIndex ds i
+
 selectColumns :: CSV -> Program -> [Column]
-selectColumns c@(CSV fileName cs) (TColumns (TInt colNum) (TVar colName) cols) = (colName, getColumn cs colNum [], 0) : selectColumns c cols 
-selectColumns (CSV fileName cs) (TColumn (TInt colNum) (TVar colName)) = [(colName, getColumn cs colNum [], 0)]
+selectColumns c (TColumns nums (TVar colName) next) = (colName, selectColumn c nums, 0) : selectColumns c next 
+selectColumns c (TColumn nums (TVar colName)) = [(colName, selectColumn c nums, 0)]
+
+selectColumn :: CSV -> Program -> [[String]]
+selectColumn (CSV fileName cs) TStar = cs
+selectColumn c@(CSV fileName cs) (TMultiCols (TInt colNum) next) = (cs !! colNum) : selectColumn c next  
+selectColumn (CSV fileName cs) (TInt colNum) = [cs !! colNum]
 
 getColumn :: [[String]] -> Int -> [String] -> [String]
 getColumn [] colNum acc = acc
@@ -108,7 +118,7 @@ loadCSV :: String -> IO CSV
 loadCSV fn = do s <- readFile (fn ++ ".csv") 
                 let ls = lines s
                 let sss = map (splitAtDelim ',' [] []) ls
-                return (CSV fn sss)
+                return (CSV fn (transpose sss))
 
 splitAtDelim :: Char -> String -> [String] -> [Char] -> [String]
 splitAtDelim _ curr acc [] = if null curr then acc else acc ++ [curr]
