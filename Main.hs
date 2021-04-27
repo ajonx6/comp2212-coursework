@@ -82,6 +82,7 @@ removeQuotations :: String -> String
 removeQuotations [] = [] 
 removeQuotations (c:cs) = if c == '\"' then removeQuotations cs else c : removeQuotations cs
 
+-- takes the 1st element of a 3 tuple
 first :: (a, b, c) -> a
 first (x, _, _) = x
 
@@ -141,12 +142,14 @@ selectColumn (CSV fileName cs) TStar = cs
 selectColumn c@(CSV fileName cs) (TMultiCols (TInt colNum) next) = (cs !! colNum) : selectColumn c next  
 selectColumn (CSV fileName cs) (TInt colNum) = [cs !! colNum]
 
+-- loads in a CSV file and puts it into a workable form
 loadCSV :: String -> IO CSV
 loadCSV fn = do s <- readFile (fn ++ ".csv") 
                 let ls = lines s
                 let sss = map (splitAtDelim ',' [] []) ls
                 return (CSV fn (transpose sss))
 
+-- seperates a string along any specified character
 splitAtDelim :: Char -> String -> [String] -> [Char] -> [String]
 splitAtDelim _ curr acc [] = if null curr then acc else acc ++ [curr]
 splitAtDelim delim curr acc [x] = if x == ',' then acc ++ [curr] ++ [""] else acc ++ [curr ++ [x]]
@@ -175,24 +178,24 @@ noParse e = do let err =  show e
                hPutStr stderr err
                return ()
 
-----------------------------------------------------------------------------------------------
---removing spaces either side of csv inputs
+-- removes spaces up to the 1st char
 removeSpace :: [Char] -> [Char]
 removeSpace l@(x:xs) | x == ' ' = removeSpace xs
                      | otherwise = l
 
+-- removes spaces before the 1st char and after the last char
 removeSpaces :: [Char] -> [Char]
 removeSpaces y = reverse(removeSpace(reverse(removeSpace(y))))
 
+-- combines the seperated words back to the required CSV form
 stringCombiner :: [String] -> [Char]
 stringCombiner [] = []
 stringCombiner (b:[]) = b
 stringCombiner (b:bs) = b ++ "," ++ stringCombiner bs
 
--- call processRow for results
+-- removes all unrequired spaces from a parsed CSV row
 processRow :: [Char] -> [Char]
 processRow temp = stringCombiner (map removeSpaces (splitAtDelim ',' [] [] temp))
-----------------------------------------------------------------------------------------------
 
 main :: IO ()
 main = catch main' noParse
