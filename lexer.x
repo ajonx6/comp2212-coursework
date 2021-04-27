@@ -7,7 +7,7 @@ $digit = 0-9
 -- digits 
 $alphaLower = [a-z]
 $alphaUpper = [A-Z]  
-$everything = [A-Za-z0-9]
+$everything = [A-Za-z0-9\ ]
 -- alphabetic characters
 
 tokens :-
@@ -37,9 +37,7 @@ tokens :-
   \=                           { \s -> TokenEqual }
   \!=                          { \s -> TokenNotEqual }
   \+          		           { \s -> TokenPlus }
-  \-          		           { \s -> TokenMinus }
   \*          		           { \s -> TokenStar }
-  \/              		       { \s -> TokenDiv }
   \{          		           { \s -> TokenLOutput }
   \}          		           { \s -> TokenROutput }
   \(          		           { \s -> TokenLParen }
@@ -72,9 +70,7 @@ data Token =
   TokenEqual              |
   TokenNotEqual           |
   TokenPlus               |
-  TokenMinus              |
   TokenStar               |
-  TokenDiv                |
   TokenLOutput            |
   TokenROutput            |
   TokenLParen             |

@@ -175,6 +175,25 @@ noParse e = do let err =  show e
                hPutStr stderr err
                return ()
 
+----------------------------------------------------------------------------------------------
+--removing spaces either side of csv inputs
+removeSpace :: [Char] -> [Char]
+removeSpace l@(x:xs) | x == ' ' = removeSpace xs
+                     | otherwise = l
+
+removeSpaces :: [Char] -> [Char]
+removeSpaces y = reverse(removeSpace(reverse(removeSpace(y))))
+
+stringCombiner :: [String] -> [Char]
+stringCombiner [] = []
+stringCombiner (b:[]) = b
+stringCombiner (b:bs) = b ++ "," ++ stringCombiner bs
+
+-- call processRow for results
+processRow :: [Char] -> [Char]
+processRow temp = stringCombiner (map removeSpaces (splitAtDelim ',' [] [] temp))
+----------------------------------------------------------------------------------------------
+
 main :: IO ()
 main = catch main' noParse
 

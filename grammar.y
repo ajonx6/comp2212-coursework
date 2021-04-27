@@ -35,7 +35,9 @@ import Tokens
       '{'          { TokenLOutput }
       '}'          { TokenROutput }
       '*'          { TokenStar }
+      '+'          { TokenPlus }
       str          { TokenString $$ }
+
 
 %%
 STMT : Selects eqArrow MainBody                        { TProgram $1 $3 }
@@ -54,9 +56,20 @@ LetSTMTs : LetSTMT                                     { $1 }
 
 LetSTMT : let var '=' Assigment                                           { TLet (TVar $2) $4 }
         | let var '=' '(' BoolSTMT ')' '?' Assigment ':' Assigment        { TLet1Line (TVar $2) $5 $8 $10 }
+        | let var '=' Concatenations                                      { TLet (TVar $2) $4 }
 
-Assigment : var                                               { TAssignment (TVar $1) }
-          | str                                               { TAssignment (TString $1) }
+
+Concatenations : var '+' Concatenationss               { TConcatenations (TVar $1) $3 }
+               | str '+' Concatenationss               { TConcatenations (TString $1) $3 }
+
+Concatenationss : var                                  { TVar $1 }
+                | str                                  { TString $1 }
+                | var '+' Concatenationss              { TConcatenations (TVar $1) $3 }
+                | str '+' Concatenationss              { TConcatenations (TString $1) $3 }
+
+
+Assigment : var                                        { TAssignment (TVar $1) }
+          | str                                        { TAssignment (TString $1) }
 
 IfOrIfElseSTMT : IfSTMT else '(' MainBody ')'          { TIfElse $1 $4 } 
                | IfSTMT                                { $1 }
@@ -113,5 +126,7 @@ data Program = TProgram Program Program
              | TAssignment Program
              | TStar
              | TTableName String
+             | TConcatenations Program Program
+             | TConcatenation Program
              deriving (Show, Eq)
 }
