@@ -1,3 +1,0 @@
-from A get 0 as a0 => 
-let r = "0" =>
--> {a0, r, a0}

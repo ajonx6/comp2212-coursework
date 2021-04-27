@@ -1,5 +1,0 @@
-from A get 0 as a0, 1 as a1 & from B get 0 as b0, 1 as b1 => 
-let r0 = (a0 != b0) ? a1 : b0 =>
--> {r0}
-
--- -> {}) else (-> {a0, b1})
