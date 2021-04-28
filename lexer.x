@@ -42,6 +42,8 @@ tokens :-
   \}          		           { \s -> TokenROutput }
   \(          		           { \s -> TokenLParen }
   \)          		           { \s -> TokenRParen }
+  \<          		           { \s -> TokenLT }
+  \>          		           { \s -> TokenGT }
   \" $everything+ \"                { \s -> TokenString s }
   $alphaLower+ $digit*         { \s -> TokenVar s }
   
@@ -79,6 +81,8 @@ data Token =
   TokenNotEmpty           |
   TokenQuestion           |
   TokenString String      |
+  TokenLT                 |
+  TokenGT                 |
   TokenColon              
   deriving (Eq,Show)
 }

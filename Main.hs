@@ -32,6 +32,8 @@ run (TLets letStmt moreLets) (cs, ls, os, is) = do (_, lss, _, _) <- run letStmt
 run (TLet (TVar var1) (TAssignment ass)) (cs, ls, os, is) = do let asss = getAssignment ass cs ls is --let vars = getAssignment var1 cs ls
                                                                if isNothing asss then do error ("Variable " ++ getName ass ++ " does not exist") 
                                                                else return (cs, ls ++ [(var1, fromJust asss)], os, is)                   
+run (TLet (TVar var1) con@(TConcatenation _ _)) (cs, ls, os, is) = do let concatt = concatenate con cs ls is
+                                                                      return (cs, ls ++ [(var1, [concatt])], os, is)
 run (TLet1Line (TVar var) bStmt (TAssignment asst) (TAssignment assf)) (cs, ls, os, is) = do let assst = getAssignment asst cs ls is
                                                                                              let asssf = getAssignment assf cs ls is
                                                                                              if isNothing assst then do error ("Variable " ++ getName asst ++ " does not exist") 
@@ -58,6 +60,13 @@ runMainBody mainBody colLengths vars@(cs, [], os, is) = do (_, _, oss, _) <- run
                                                            let iss = addOne is colLengths 0
                                                            if head iss == -1 then return (cs, [], oss, iss) 
                                                            else runMainBody mainBody colLengths (cs, [], oss, iss)
+
+concatenate :: Program -> [Column] -> [LetVar] -> [Int] -> String
+concatenate (TVar var) cs ls is = let varr = lookup' var cs ls is
+                                  in if isNothing varr then do error ("Variable " ++ var ++ " does not exist")           
+                                     else head (fromJust varr)
+concatenate (TString str) _ _ _ = removeQuotations str 
+concatenate (TConcatenation var rest) cs ls is = concatenate var cs ls is  ++ concatenate rest cs ls is 
 
 -- takes in the indexes of the rows being worked on and adds 1, returns -1 once complete
 addOne :: [Int] -> [Int] -> Int -> [Int]
@@ -105,13 +114,23 @@ evaluateBoolTest (TEmpty (TVar var)) cs ls is = let varr = lookup' var cs ls is
                                                     else all (== "") (fromJust varr) 
 evaluateBoolTest (TNotEmpty (TVar var)) cs ls is = let varr = lookup' var cs ls is
                                                    in  if isNothing varr then do error ("Variable " ++ var ++ " does not exist in if statement")           
-                                                       else any (/= "") (fromJust varr) 
+                                                       else any (/= "") (fromJust varr)
+evaluateBoolTest (TLess (TVar var1) (TAssignment var2)) cs ls is = let varr1 = lookup' var1 cs ls is
+                                                                       varr2 = getAssignment var2 cs ls is
+                                                                   in  if isNothing varr1 then do error ("Variable " ++ var1 ++ " does not exist")           
+                                                                       else if isNothing varr2 then do error ("Variable " ++ getName var2 ++ " does not exist")           
+                                                                       else fromJust varr1 < fromJust varr2   
+evaluateBoolTest (TGreater (TVar var1) (TAssignment var2)) cs ls is = let varr1 = lookup' var1 cs ls is
+                                                                          varr2 = getAssignment var2 cs ls is
+                                                                      in  if isNothing varr1 then do error ("Variable " ++ var1 ++ " does not exist")           
+                                                                          else if isNothing varr2 then do error ("Variable " ++ getName var2 ++ " does not exist")           
+                                                                          else fromJust varr1 > fromJust varr2                                                     
 
 -- writes a new line into the output
---writeToOutput :: [[String]] -> [String] -> [[String]]
---writeToOutput os vars = let currentRow = os !! (length os - 1)
---                            restOfList = take (length os - 1) os
---                        in  restOfList ++ [currentRow ++ vars]
+writeToOutput :: [[String]] -> [String] -> [[String]]
+writeToOutput os vars = let currentRow = os !! (length os - 1)
+                            restOfList = take (length os - 1) os
+                        in  restOfList ++ [currentRow ++ vars]
 
 -- prepares the output to start another row
 finishRowOutput :: [[String]] -> [[String]]
