@@ -11,11 +11,7 @@ type Column = (String, [[String]], Int)
 type LetVar = (String, [String])
 type Environment = ([Column], [LetVar], [[String]], [Int])
 
-
--- for i in 0 to A-1
---     for j in 0 to b-1
---         for k in 0 to C-1
-
+-- depending on current node, executes required command
 run :: Program -> Environment -> IO Environment
 run (TProgram selects mainBody) (cs, ls, os, is) = do vars@(css, lss, oss, iss) <- run selects (cs, ls, os, is)
                                                       let colLengths = getColLengths css []
@@ -56,28 +52,34 @@ run (TOutput (TAssignment ass)) (cs, ls, os, is) = do let asss = getAssignment a
                                                               return (cs, ls, newOS, is)                                 
 run TNoOutput (_, _, os, is) = return ([], [], os, is)    
 
+-- runs the main program the required amount of times to evaluate every row
 runMainBody :: Program -> [Int] -> Environment -> IO Environment
 runMainBody mainBody colLengths vars@(cs, [], os, is) = do (_, _, oss, _) <- run mainBody vars
                                                            let iss = addOne is colLengths 0
                                                            if head iss == -1 then return (cs, [], oss, iss) 
                                                            else runMainBody mainBody colLengths (cs, [], oss, iss)
 
+-- takes in the indexes of the rows being worked on and adds 1, returns -1 once complete
 addOne :: [Int] -> [Int] -> Int -> [Int]
 addOne is colLengths index | index >= length is = [-1]
 addOne is colLengths index | otherwise =  if is !! index == (colLengths !! index) - 1 then addOne (take index is ++ [0] ++ drop (index + 1) is) colLengths (index + 1) else (take index is ++ [(is !! index) + 1] ++ drop (index + 1) is) 
 
+-- returns the length of the table columns
 getColLengths :: [Column] -> [Int] -> [Int]
 getColLengths [] _ = []
 getColLengths ((n, d, i):cs) done = if length d == 0 then 0 : getColLengths cs done else if i `notElem` done then length (head d) : getColLengths cs (done ++ [i]) else getColLengths cs done
 
+-- returns the name of a variable/text of a string
 getName :: Program -> String
 getName (TString str) = removeQuotations str
 getName (TVar var) = var
 
+-- returns the value of a string/variable or returns nothing if the variable doesn't exist
 getAssignment :: Program -> [Column] -> [LetVar] -> [Int] -> Maybe [String]
 getAssignment (TString str) _ _ _ = Just [removeQuotations str]
 getAssignment (TVar var) cs ls is = lookup' var cs ls is
 
+-- removes quotations from a string
 removeQuotations :: String -> String
 removeQuotations [] = [] 
 removeQuotations (c:cs) = if c == '\"' then removeQuotations cs else c : removeQuotations cs
@@ -86,6 +88,7 @@ removeQuotations (c:cs) = if c == '\"' then removeQuotations cs else c : removeQ
 first :: (a, b, c) -> a
 first (x, _, _) = x
 
+-- evaluates the boolean condition
 evaluateBoolTest :: Program -> [Column] -> [LetVar] -> [Int] -> Bool 
 evaluateBoolTest (TEqual (TVar var1) (TAssignment var2)) cs ls is = let varr1 = lookup' var1 cs ls is
                                                                         varr2 = getAssignment var2 cs ls is
@@ -104,14 +107,17 @@ evaluateBoolTest (TNotEmpty (TVar var)) cs ls is = let varr = lookup' var cs ls 
                                                    in  if isNothing varr then do error ("Variable " ++ var ++ " does not exist in if statement")           
                                                        else any (/= "") (fromJust varr) 
 
-writeToOutput :: [[String]] -> [String] -> [[String]]
-writeToOutput os vars = let currentRow = os !! (length os - 1)
-                            restOfList = take (length os - 1) os
-                        in  restOfList ++ [currentRow ++ vars]
+-- writes a new line into the output
+--writeToOutput :: [[String]] -> [String] -> [[String]]
+--writeToOutput os vars = let currentRow = os !! (length os - 1)
+--                            restOfList = take (length os - 1) os
+--                        in  restOfList ++ [currentRow ++ vars]
 
+-- prepares the output to start another row
 finishRowOutput :: [[String]] -> [[String]]
 finishRowOutput os = os ++ [[]]
 
+-- will lookup a variable name by checking if it's a column or a let variable
 lookup' :: String -> [Column] -> [LetVar] -> [Int] -> Maybe [String]
 lookup' str cs vs is = let coll = lookupColName str cs is
                            lett = lookupLetName str vs
@@ -119,24 +125,29 @@ lookup' str cs vs is = let coll = lookupColName str cs is
                            else if isJust lett then lett
                            else Nothing
 
+-- checks to see if a column name exists (and if so returns the value)
 lookupColName :: String -> [Column] -> [Int] -> Maybe [String]
 lookupColName _ [] _ = Nothing
 lookupColName varName ((n, d, i):cs) columnIndex = if varName == n then Just (getDataAtIndex d (columnIndex !! i)) else lookupColName varName cs columnIndex
 -- TODODODODO
 
+-- checks to see if the let variable exists (and if so returns assigned value)
 lookupLetName :: String -> [LetVar] -> Maybe [String]
 lookupLetName _ [] = Nothing
 lookupLetName varName ((n, v):ns) = if varName == n then Just v else lookupLetName varName ns
 
+-- returns the data at a given index
 getDataAtIndex :: [[String]] -> Int -> [String]
 getDataAtIndex [] _ = []
 getDataAtIndex (d:ds) i = d !! i : getDataAtIndex ds i
-
+ 
+ -- retrieves all the columns used for a given table
 selectColumns :: CSV -> Int -> Program -> [Column]
 selectColumns c index (TColumns nums (TVar colName) next) = (colName, selectColumn c nums, index) : selectColumns c index next 
 selectColumns c index (TColumn nums (TVar colName)) = [(colName, selectColumn c nums, index)]
 -- TODODODODO
 
+ -- retrieves the columns that a variable will use
 selectColumn :: CSV -> Program -> [[String]]
 selectColumn (CSV fileName cs) TStar = cs
 selectColumn c@(CSV fileName cs) (TMultiCols (TInt colNum) next) = (cs !! colNum) : selectColumn c next  
@@ -155,6 +166,7 @@ splitAtDelim _ curr acc [] = if null curr then acc else acc ++ [curr]
 splitAtDelim delim curr acc [x] = if x == ',' then acc ++ [curr] ++ [""] else acc ++ [curr ++ [x]]
 splitAtDelim delim curr acc (c:cs) = if c == delim then splitAtDelim delim [] (acc ++ [curr]) cs else splitAtDelim delim (curr ++ [c]) acc cs
 
+-- takes in a file name and runs the program
 runProgram :: String -> IO ()
 runProgram filename = do source <- readFile filename
                          let parseProg = parseCalc (alexScanTokens source)
@@ -162,21 +174,18 @@ runProgram filename = do source <- readFile filename
                          printCSV (sort (take (length os - 1) os))
                          return ()
 
+-- prints the entire CSV file to the console
 printCSV :: [[String]] -> IO ()
 printCSV [] = return ()
 printCSV (l:ls) = do printLine l
                      printCSV ls
 
+-- prints a row to the console
 printLine :: [String] -> IO ()
 printLine [w] = do putStrLn w
 printLine (w:ws) = do putStr w
                       putStr ","
                       printLine ws
-
-noParse :: ErrorCall -> IO ()
-noParse e = do let err =  show e
-               hPutStr stderr err
-               return ()
 
 -- removes spaces up to the 1st char
 removeSpace :: [Char] -> [Char]
@@ -197,9 +206,17 @@ stringCombiner (b:bs) = b ++ "," ++ stringCombiner bs
 processRow :: [Char] -> [Char]
 processRow temp = stringCombiner (map removeSpaces (splitAtDelim ',' [] [] temp))
 
+-- catches any errors from lexing or parsing
+noParse :: ErrorCall -> IO ()
+noParse e = do let err =  show e
+               hPutStr stderr err
+               return ()
+
+-- entry point to code
 main :: IO ()
 main = catch main' noParse
 
+-- loads programs, then lexes and parses for execution
 main' :: IO ()
 main' = do (fileName : _ ) <- getArgs 
            sourceText <- readFile fileName
