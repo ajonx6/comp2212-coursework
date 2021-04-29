@@ -14,9 +14,12 @@ type Environment = ([Column], [LetVar], [[String]], [Int])
 -- depending on current node, executes required command
 run :: Program -> Environment -> IO Environment
 run (TProgram selects mainBody) (cs, ls, os, is) = do vars@(css, lss, oss, iss) <- run selects (cs, ls, os, is)
-                                                      let colLengths = getColLengths css []
-                                                      if 0 `elem` colLengths then return ([], [], [], is)
-                                                      else runMainBody mainBody colLengths vars
+                                                      let dupCol = colsContainDupNames css []
+                                                      if isJust dupCol then do let (name, dat, tableIndex) = fromJust dupCol 
+                                                                               error ("Duplicate column name \"" ++ name ++ "\"")
+                                                      else do let colLengths = getColLengths css []
+                                                              if 0 `elem` colLengths then return ([], [], [], is)
+                                                              else runMainBody mainBody colLengths vars
 run (TSelects select selects) (cs, ls, os, is) = do (css, _, _, iss) <- run select (cs, ls, os, is)
                                                     (mcss, _, _, miss) <- run selects (css, ls, os, iss)
                                                     return (css ++ mcss, ls, os, miss)
@@ -28,15 +31,21 @@ run (TMain lets lower) (cs, ls, os, is) = do (_, lss, _, _) <- run lets (cs, ls,
                                              run lower (cs, ls ++ lss, os, is)
 run (TLets letStmt moreLets) (cs, ls, os, is) = do (_, lss, _, _) <- run letStmt (cs, ls, os, is)
                                                    (_, mlss, _, _) <- run moreLets (cs, ls, os, is)
-                                                   return (cs, lss ++ mlss, os, is)
-run (TLet (TVar var1) (TAssignment ass)) (cs, ls, os, is) = do let asss = getAssignment ass cs ls is --let vars = getAssignment var1 cs ls
-                                                               if isNothing asss then do error ("Variable " ++ getName ass ++ " does not exist") 
+                                                   let dupLet = letsContainDupNames (lss ++ mlss) []
+                                                   if isJust dupLet then do let (name, dat) = fromJust dupLet 
+                                                                            error ("Duplicate variable name \"" ++ name ++ "\"")
+                                                   else return (cs, lss ++ mlss, os, is)
+run (TLet (TVar var1) (TAssignment ass)) (cs, ls, os, is) = do let asss = getAssignment ass cs ls is
+                                                               if any (\(n, d) -> n == var1) ls || any (\(n, d, i) -> n == var1) cs then do error ("Duplicate variable name \"" ++ var1 ++ "\"") 
+                                                               else if isNothing asss then do error ("Variable " ++ getName ass ++ " does not exist") 
                                                                else return (cs, ls ++ [(var1, fromJust asss)], os, is)                   
-run (TLet (TVar var1) con@(TConcatenation _ _)) (cs, ls, os, is) = do let concatt = concatenate con cs ls is
-                                                                      return (cs, ls ++ [(var1, [concatt])], os, is)
+run (TLet (TVar var1) con@(TConcatenation _ _)) (cs, ls, os, is) = do if any (\(n, d) -> n == var1) ls || any (\(n, d, i) -> n == var1) cs then do error ("Duplicate variable name \"" ++ var1 ++ "\"") 
+                                                                      else do let concatt = concatenate con cs ls is
+                                                                              return (cs, ls ++ [(var1, [concatt])], os, is)
 run (TLet1Line (TVar var) bStmt (TAssignment asst) (TAssignment assf)) (cs, ls, os, is) = do let assst = getAssignment asst cs ls is
                                                                                              let asssf = getAssignment assf cs ls is
-                                                                                             if isNothing assst then do error ("Variable " ++ getName asst ++ " does not exist") 
+                                                                                             if any (\(n, d) -> n == var) ls || any (\(n, d, i) -> n == var) cs then do error ("Duplicate variable name \"" ++ var ++ "\"") 
+                                                                                             else if isNothing assst then do error ("Variable " ++ getName asst ++ " does not exist") 
                                                                                              else if isNothing asssf then do error ("Variable " ++ getName assf ++ " does not exist") 
                                                                                              else if evaluateBoolTest bStmt cs ls is then return (cs, ls ++ [(var, fromJust assst)], os, is)
                                                                                              else return (cs, ls ++ [(var, fromJust asssf)], os, is)
@@ -54,6 +63,16 @@ run (TOutput (TAssignment ass)) (cs, ls, os, is) = do let asss = getAssignment a
                                                               return (cs, ls, newOS, is)                                 
 run TNoOutput (_, _, os, is) = return ([], [], os, is)    
 
+-- Checks if the columns contain duplicates of a name
+colsContainDupNames :: [Column] -> [String] -> Maybe Column
+colsContainDupNames [] _ = Nothing
+colsContainDupNames (c@(n, d, i):cs) acc = if n `elem` acc then Just c else colsContainDupNames cs (acc ++ [n])
+
+-- Checks if the let variables contain duplicates of a name
+letsContainDupNames :: [LetVar] -> [String] -> Maybe LetVar
+letsContainDupNames [] _ = Nothing
+letsContainDupNames (l@(n, d):ls) acc = if n `elem` acc then Just l else letsContainDupNames ls (acc ++ [n])
+
 -- runs the main program the required amount of times to evaluate every row
 runMainBody :: Program -> [Int] -> Environment -> IO Environment
 runMainBody mainBody colLengths vars@(cs, [], os, is) = do (_, _, oss, _) <- run mainBody vars
@@ -61,6 +80,7 @@ runMainBody mainBody colLengths vars@(cs, [], os, is) = do (_, _, oss, _) <- run
                                                            if head iss == -1 then return (cs, [], oss, iss) 
                                                            else runMainBody mainBody colLengths (cs, [], oss, iss)
 
+-- Will concatenate a mix of strings and variables into one string
 concatenate :: Program -> [Column] -> [LetVar] -> [Int] -> String
 concatenate (TVar var) cs ls is = let varr = lookup' var cs ls is
                                   in if isNothing varr then do error ("Variable " ++ var ++ " does not exist")           
@@ -148,7 +168,6 @@ lookup' str cs vs is = let coll = lookupColName str cs is
 lookupColName :: String -> [Column] -> [Int] -> Maybe [String]
 lookupColName _ [] _ = Nothing
 lookupColName varName ((n, d, i):cs) columnIndex = if varName == n then Just (getDataAtIndex d (columnIndex !! i)) else lookupColName varName cs columnIndex
--- TODODODODO
 
 -- checks to see if the let variable exists (and if so returns assigned value)
 lookupLetName :: String -> [LetVar] -> Maybe [String]
@@ -164,7 +183,6 @@ getDataAtIndex (d:ds) i = d !! i : getDataAtIndex ds i
 selectColumns :: CSV -> Int -> Program -> [Column]
 selectColumns c index (TColumns nums (TVar colName) next) = (colName, selectColumn c nums, index) : selectColumns c index next 
 selectColumns c index (TColumn nums (TVar colName)) = [(colName, selectColumn c nums, index)]
--- TODODODODO
 
  -- retrieves the columns that a variable will use
 selectColumn :: CSV -> Program -> [[String]]
@@ -177,7 +195,15 @@ loadCSV :: String -> IO CSV
 loadCSV fn = do s <- readFile (fn ++ ".csv") 
                 let ls = lines s
                 let sss = map (splitAtDelim ',' [] []) ls
-                return (CSV fn (transpose sss))
+                let firstLength = length (head sss)
+                let areSameLength = allRowsSameLength firstLength 1 (tail sss)
+                if snd areSameLength then return (CSV fn (transpose sss))
+                else error ("CSV file \"" ++ fn ++ "\" has variable row length at row " ++ show (fst areSameLength))
+
+-- Checks all the rows in the CSV file have the same number of data entries
+allRowsSameLength :: Int -> Int -> [[String]] -> (Int, Bool)
+allRowsSameLength _ _ [] = (-1, True)
+allRowsSameLength len index (r:rs) = if length r /= len then (index, False) else allRowsSameLength len (index + 1) rs 
 
 -- seperates a string along any specified character
 splitAtDelim :: Char -> String -> [String] -> [Char] -> [String]
@@ -238,8 +264,4 @@ main = catch main' noParse
 -- loads programs, then lexes and parses for execution
 main' :: IO ()
 main' = do (fileName : _ ) <- getArgs 
-           sourceText <- readFile fileName
-           putStrLn ("Lexing : " ++ sourceText)
-           let parsedProg = parseCalc (alexScanTokens sourceText)
-           putStrLn ("Lexed as " ++ (show (alexScanTokens sourceText)))
-           putStrLn ("Parsed as " ++ (show parsedProg))
+           runProgram fileName
