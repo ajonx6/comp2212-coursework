@@ -1,6 +1,6 @@
 {
 module Grammar where
-import Tokens
+import Lexer
 }
 
 %name parseCalc
